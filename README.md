@@ -1,4 +1,4 @@
-# Sistem Pengajuan Surat Administrasi Online (Layanan Surat FT)
+# Layanan Surat Mahasiswa Online (SuratOnline FT)
 > **Studi Kasus 2: Layanan Surat Online — Middleware + Route Group + Otorisasi Kepemilikan Data**  
 > Fakultas Teknologi — Implementasi Framework Laravel 12 & Laravel Breeze
 

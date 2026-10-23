@@ -3,7 +3,7 @@
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
     <div class="mb-6 text-center">
-        <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">Sistem Layanan Surat Online</h2>
+        <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">Layanan Surat Mahasiswa Online (SuratOnline FT)</h2>
         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Fakultas Teknologi — Akses Berbasis Peran & Hak Kepemilikan</p>
     </div>
 

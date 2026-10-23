@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Sistem Layanan Surat Administrasi Online — Fakultas Teknologi</title>
+    <title>Layanan Surat Mahasiswa Online (SuratOnline FT) — Fakultas Teknologi</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -18,7 +18,7 @@
             </div>
             <div>
                 <span class="font-bold text-lg tracking-tight block">Fakultas Teknologi</span>
-                <span class="text-xs text-indigo-300 block -mt-1">Layanan Surat Administrasi Online</span>
+                <span class="text-xs text-indigo-300 block -mt-1">SuratOnline FT — Layanan Surat Mahasiswa Online</span>
             </div>
         </div>
 
@@ -46,18 +46,19 @@
 
     <!-- Hero Section -->
     <main class="max-w-7xl mx-auto px-6 pt-12 pb-20">
-        <div class="text-center max-w-3xl mx-auto space-y-6">
+        <div class="text-center max-w-4xl mx-auto space-y-6">
             <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold">
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                 Studi Kasus 2: Middleware + Route Group + Otorisasi Kepemilikan Data
             </div>
 
-            <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
-                Layanan Pengajuan Surat Online yang Aman & Terstruktur
+            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight">
+                Layanan Surat Mahasiswa Online<br />
+                <span class="text-indigo-400">(SuratOnline FT)</span>
             </h1>
 
-            <p class="text-slate-300 text-base sm:text-lg leading-relaxed">
-                Menghubungkan mahasiswa, staf tata usaha, dan kepala bagian dalam satu alur terpadu. Dilengkapi sistem proteksi hak akses berlapis untuk menjamin kerahasiaan data setiap pemohon.
+            <p class="text-slate-300 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto">
+                Portal resmi Fakultas Teknologi untuk pengajuan dan penerbitan surat aktif kuliah, izin penelitian, cuti, dan magang bagi mahasiswa secara aman, cepat, dan transparan.
             </p>
 
             <div class="pt-4 flex flex-wrap items-center justify-center gap-4">
