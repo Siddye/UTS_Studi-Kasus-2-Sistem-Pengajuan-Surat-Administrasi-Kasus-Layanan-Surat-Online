@@ -1,0 +1,246 @@
+================================================================================
+                    PANDUAN & BUKTI PENGUMPULAN TUGAS / UTS
+           STUDI KASUS 2: SISTEM PENGAJUAN SURAT ADMINISTRASI ONLINE
+              (MIDDLEWARE + ROUTE GROUP + OTORISASI KEPEMILIKAN DATA)
+================================================================================
+
+Catatan Penting Pengumpulan:
+"Kumpul semua bukti-bukti seperti source code, laporan praktikum (penjelasan detail 
+dari yang dikerjakan), serta video penjelasan maksimal 25 menit."
+
+Dokumen ini berisi:
+1. Checklist Berkas & Komponen Bukti Pengumpulan
+2. Format Template Laporan Praktikum Lengkap (Siap disalin ke Word / PDF)
+3. Panduan & Rundown Rekaman Video Penjelasan (Maksimal 25 Menit)
+4. Daftar Akun Pengujian & Skenario Demo untuk Video
+
+--------------------------------------------------------------------------------
+1. CHECKLIST BUKTI PENGUMPULAN TUGAS
+--------------------------------------------------------------------------------
+[ ] BUKTI 1: SOURCE CODE LENGKAP
+    - Seluruh kode proyek Laravel pada folder: c:\xampp\htdocs\UTS_webIII
+    - Git commit sudah rapi dan tercatat
+    - File basis data SQLite (database/database.sqlite) sudah terseed otomatis
+    - Link repositori GitHub / GitLab atau file arsip .ZIP (tanpa folder vendor & node_modules)
+
+[ ] BUKTI 2: LAPORAN PRAKTIKUM (DOKUMEN PDF/WORD)
+    - Penjelasan latar belakang masalah & solusi sistem pengajuan surat
+    - Penjelasan detail implementasi:
+      * Laravel Breeze & Multi-Role Users
+      * RoleMiddleware di app/Http/Middleware/RoleMiddleware.php
+      * Route Groups di routes/web.php
+      * SuratPolicy (Pemeriksaan kepemilikan data) di app/Policies/SuratPolicy.php
+      * Controllers (Mahasiswa, Petugas, Kepala Bagian)
+      * Tampilan antarmuka Blade & Tailwind CSS
+    - Tangkapan layar (screenshot) bukti pengujian sistem
+    - Tangkapan layar bukti pembobolan URL yang dicegah (403 Forbidden)
+    - Hasil pengujian otomatis (php artisan test: 35 passing tests)
+    - Jawaban lengkap 3 Pertanyaan Analisis Kasus
+
+[ ] BUKTI 3: VIDEO PENJELASAN (MAKSIMAL 25 MENIT)
+    - Format: MP4 / Link YouTube Unlisted / Google Drive
+    - Durasi: Maksimal 25 menit
+    - Kualitas: Minimal 720p / 1080p, audio terdengar jelas
+    - Menampilkan wajah mahasiswa di pojok layar (webcam) dan rekam layar (screen recording)
+    - Mengikuti susunan rundown pada Bagian 3 di bawah ini.
+
+
+--------------------------------------------------------------------------------
+2. TEMPLATE LAPORAN PRAKTIKUM LENGKAP
+--------------------------------------------------------------------------------
+Silakan salin draf laporan berikut ke dalam Microsoft Word / Google Docs dan simpan sebagai PDF:
+
+================================================================================
+                       LAPORAN PRAKTIKUM PEMROGRAMAN WEB
+               STUDI KASUS 2: LAYANAN SURAT ADMINISTRASI ONLINE
+              FAKULTAS TEKNOLOGI - SISTEM OTORISASI BERLAPIS
+
+Disusun oleh:
+Nama          : [Nama Lengkap Anda]
+NIM           : [Nomor Induk Mahasiswa Anda]
+Kelas / Prodi : [Kelas / Teknik Informatika]
+Mata Kuliah   : Pemrograman Web III
+Dosen Pengampu: [Nama Dosen Pengampu]
+Tanggal       : 23 Oktober 2026
+================================================================================
+
+BAB I: PENDAHULUAN
+1.1 Latar Belakang
+Bagian administrasi Fakultas Teknologi melayani ratusan permohonan surat administrasi setiap minggunya, seperti Surat Keterangan Aktif Kuliah, Surat Izin Penelitian, dan Surat Pengantar Magang. Proses manual memerlukan kehadiran fisik mahasiswa dan menyulitkan petugas tata usaha dalam memantau siklus hidup surat (baru masuk, sedang diproses, atau selesai). 
+
+1.2 Identifikasi Masalah & Keamanan
+Tantangan teknis utama adalah menyediakan sistem berbasis peran (mahasiswa, petugas administrasi, dan kepala bagian) dengan proteksi data yang ketat. Kasus spesifik yang diatasi adalah pencegahan eksploitasi Insecure Direct Object Reference (IDOR), di mana seorang mahasiswa berusaha membuka URL surat mahasiswa lain dengan mengganti ID pada browser.
+
+BAB II: ARSITEKTUR SISTEM & PERANCANGAN
+2.1 Tiga Peran Pengguna (Roles):
+1. Mahasiswa: Mengajukan surat, melihat riwayat dan memantau status surat miliknya sendiri.
+2. Petugas Administrasi: Memeriksa berkas permohonan, menyiapkan draf nomor surat, dan memperbarui status pemrosesan.
+3. Kepala Bagian: Mengevaluasi kelayakan dokumen, mengesahkan nomor surat resmi (disetujui), atau menolak permohonan dengan catatan resmi.
+
+2.2 Diagram Alur Status Surat:
+[Menunggu Verifikasi] ---> (Diverifikasi Petugas) ---> [Sedang Diproses]
+                                                              |
+                  +-------------------------------------------+
+                  |                                           |
+                  v                                           v
+       [Disetujui Resmi Kabag]                      [Ditolak Berkas]
+       (Nomor Surat Terbit)                         (Catatan Alasan)
+
+BAB III: DETAIL IMPLEMENTASI TEKNIS
+3.1 Autentikasi dengan Laravel Breeze
+- Menerapkan arsitektur sesi aman Laravel Breeze (Blade Stack).
+- Tabel users diperluas dengan kolom: role, nim, prodi, dan no_hp.
+- Registrasi publik otomatis menetapkan peran 'mahasiswa' dan memvalidasi NIM unik.
+
+3.2 Middleware Pembatasan Peran (RoleMiddleware)
+- Berkas: app/Http/Middleware/RoleMiddleware.php
+- Didaftarkan sebagai alias 'role' di bootstrap/app.php.
+- Memeriksa apakah auth()->user()->role sesuai dengan parameter rute. Jika tidak sesuai, melempar HTTP 403 Forbidden.
+
+3.3 Pengelompokan Rute (Route Groups)
+- Berkas: routes/web.php
+- Grup Mahasiswa: prefix('mahasiswa')->middleware(['auth', 'role:mahasiswa'])
+- Grup Petugas: prefix('petugas')->middleware(['auth', 'role:petugas'])
+- Grup Kepala Bagian: prefix('kepala-bagian')->middleware(['auth', 'role:kepala_bagian'])
+
+3.4 Otorisasi Kepemilikan Data (Data Ownership via SuratPolicy)
+- Berkas: app/Policies/SuratPolicy.php
+- Logika method view(User $user, Surat $surat):
+  Memastikan jika $user adalah mahasiswa, maka $user->id wajib sama dengan $surat->user_id.
+- Dipanggil pada controller menggunakan: Gate::authorize('view', $surat).
+- Apabila terjadi upaya penggantian ID di URL browser, sistem secara otomatis menolak dengan kode HTTP 403.
+
+BAB IV: HASIL PENGUJIAN SISTEM
+4.1 Tabel Pengujian Rute & URL Langsung:
++------------------------------------+------------------+-----------------+----------+
+| Skenario Pengujian                 | Akun Penguji     | Hasil Yang Dicari| Status  |
++------------------------------------+------------------+-----------------+----------+
+| Tamu buka /mahasiswa/dashboard     | Guest (Belum login)| Redirect /login| BERHASIL |
+| Mahasiswa buka /mahasiswa/dashboard| Mahasiswa 1      | 200 OK          | BERHASIL |
+| Mahasiswa buka /petugas/dashboard  | Mahasiswa 1      | 403 Forbidden   | BERHASIL |
+| Mahasiswa buka /kepala-bagian/*    | Mahasiswa 1      | 403 Forbidden   | BERHASIL |
+| Mahasiswa 1 buka surat ID #1       | Mahasiswa 1      | 200 OK (Miliknya)| BERHASIL |
+| Mahasiswa 1 manipulasi URL ID #3   | Mahasiswa 1      | 403 Forbidden   | BERHASIL |
+| Petugas verifikasi surat           | Petugas TU       | Status 'diproses'| BERHASIL |
+| Kabag sahkan surat                 | Kepala Bagian    | Status 'disetujui'| BERHASIL |
++------------------------------------+------------------+-----------------+----------+
+
+4.2 Hasil Automated Feature Test:
+Perintah: php artisan test --filter=SuratAuthorizationTest
+Hasil: 10 test cases passed, 32 assertions passed (100% Green).
+
+BAB V: PEMBAHASAN PERTANYAAN ANALISIS KASUS
+5.1 Analisis Pertanyaan 1: Apakah middleware pemeriksaan peran saja cukup untuk mencegah mahasiswa melihat surat milik mahasiswa lain?
+Jawaban: TIDAK CUKUP.
+Alasan: Middleware peran (Role-Based Access Control) bekerja pada lapisan rute (route-level). Middleware hanya memastikan bahwa pemohon terdaftar sebagai 'mahasiswa'. Karena Mahasiswa A dan Mahasiswa B sama-sama memiliki peran 'mahasiswa', keduanya akan diizinkan melewati middleware untuk rute '/mahasiswa/surat/{id}'. Jika tidak ada validasi kepemilikan data, Mahasiswa A dapat melihat surat Mahasiswa B hanya dengan mengubah ID di browser (kerentanan IDOR). Oleh karena itu, diperlukan lapisan kedua yaitu SuratPolicy / Gate di controller untuk memvalidasi record.user_id === auth()->id().
+
+5.2 Analisis Pertanyaan 2: Bagaimana membedakan pembatasan akses berdasarkan peran dengan pembatasan berdasarkan kepemilikan data?
+Jawaban:
+- Pembatasan Peran (RBAC): Berfokus pada 'siapa yang boleh melakukan apa' (fitur makro). Contoh: Petugas berhak memproses surat, Mahasiswa tidak boleh. Diterapkan via Route Middleware.
+- Pembatasan Kepemilikan Data: Berfokus pada 'siapa yang memiliki baris data tertentu' (objek mikro). Contoh: Mahasiswa A dan B sama-sama boleh melihat surat, tapi hanya data miliknya sendiri. Diterapkan via Laravel Policy / Gate.
+
+5.3 Analisis Pertanyaan 3: Apa risiko jika pemeriksaan hak akses hanya dilakukan di sisi frontend?
+Jawaban:
+Sangat berbahaya karena melanggar prinsip 'Never Trust Client Input':
+1. Pengguna dapat memanipulasi DOM/HTML melalui fitur 'Inspect Element' browser untuk memunculkan tombol yang disembunyikan.
+2. Penyerang dapat mengirimkan permintaan HTTP langsung ke server menggunakan cURL atau Postman tanpa melalui antarmuka web.
+3. Terjadi kebocoran data pribadi (Data Breach) mahasiswa lain karena backend tidak memfilter akses objek.
+4. Terjadi manipulasi status secara ilegal jika endpoint persetujuan tidak diproteksi di sisi server.
+
+BAB VI: KESIMPULAN
+Sistem pengajuan surat online Fakultas Teknologi berhasil diimplementasikan menggunakan Laravel 12 dan Laravel Breeze. Dengan memadukan RoleMiddleware pada Route Groups dan SuratPolicy pada level data model, sistem terbukti aman dari upaya manipulasi URL (IDOR) dan menyediakan alur kerja administrasi fakultas yang transparan, efisien, dan andal.
+
+
+--------------------------------------------------------------------------------
+3. RUNDOWN REKAMAN VIDEO PENJELASAN (MAKSIMAL 25 MENIT)
+--------------------------------------------------------------------------------
+Gunakan urutan waktu ini sebagai panduan saat merekam layar (OBS / Loom / Camtasia):
+
+[00:00 - 02:00] SEGMENT 1: PEMBUKAAN & PENGENALAN STUDI KASUS
+- Buka webcam dan perkenalkan diri (Nama, NIM, Program Studi, Kelas).
+- Bacakan deskripsi singkat Studi Kasus 2: Layanan Surat Online Fakultas Teknologi.
+- Jelaskan tujuan video: Mendemonstrasikan sistem 3 peran pengguna, route groups, middleware, serta pembuktian pencegahan manipulasi URL browser.
+
+[02:00 - 06:00] SEGMENT 2: DEMO APLIKASI - ALUR LENGKAP PENGAJUAN SURAT
+- Buka browser ke alamat http://127.0.0.1:8000. Tunjukkan landing page.
+- Masuk ke menu Login: Tunjukkan fitur Quick-Fill Demo Account.
+- Login sebagai Mahasiswa 1 (Ahmad Zaki):
+  * Tunjukkan dashboard metrik mahasiswa.
+  * Buka menu '+ Ajukan Surat'. Isi form permohonan surat baru dan submit.
+  * Tunjukkan bahwa surat masuk dengan status 'Menunggu Verifikasi'.
+  * Logout.
+
+[06:00 - 10:00] SEGMENT 3: DEMO ALUR VERIFIKASI PETUGAS & PENGESAHAN KABAG
+- Login sebagai Petugas Tata Usaha (Siti Rahma):
+  * Buka Dashboard Petugas dan menu 'Kelola Permohonan Surat'.
+  * Buka surat yang baru diajukan mahasiswa tadi.
+  * Periksa berkas, masukkan catatan verifikasi berkas, masukkan draft nomor surat, ubah status menjadi 'Sedang Diproses'.
+  * Logout.
+- Login sebagai Kepala Bagian (Dr. Ir. Hendra Gunawan):
+  * Buka Dashboard Kabag, lihat antrean siap disahkan.
+  * Buka surat tersebut, klik 'Setujui & Terbitkan Surat' (nomor surat resmi otomatis digenerate).
+  * Tunjukkan pratinjau lembar surat dinas resmi Fakultas Teknologi ber-kop surat.
+  * Logout.
+- Login kembali sebagai Mahasiswa 1: Tunjukkan status surat telah berubah menjadi 'Disetujui' lengkap dengan nomor resminya.
+
+[10:00 - 15:00] SEGMENT 4: PEMBUKTIAN KEAMANAN & PENGUJIAN MANIPULASI URL (TITIK KRUSIAL KASUS)
+- Login kembali sebagai Mahasiswa 1.
+- Buka detail surat miliknya: http://127.0.0.1:8000/mahasiswa/surat/1 (berhasil terbuka).
+- Sekarang demonstrasikan manipulasi URL:
+  * Di kolom address bar browser, ganti angka 1 menjadi 3: http://127.0.0.1:8000/mahasiswa/surat/3 (milik Mahasiswa 2/Budi).
+  * Tekan ENTER!
+  * Sorot layar: Tunjukkan respon 403 FORBIDDEN (Akses Ditolak: Anda tidak memiliki izin untuk melihat pengajuan surat milik mahasiswa lain).
+- Lakukan percobaan manipulasi rute peran:
+  * Masih login sebagai Mahasiswa 1, ketikkan URL petugas di browser: http://127.0.0.1:8000/petugas/dashboard.
+  * Tekan ENTER!
+  * Tunjukkan respon 403 FORBIDDEN yang dihasilkan oleh RoleMiddleware.
+
+[15:00 - 19:30] SEGMENT 5: BEDAH SOURCE CODE (CODE WALKTHROUGH)
+- Buka editor kode (Antigravity IDE / VS Code).
+- Tunjukkan file app/Http/Middleware/RoleMiddleware.php:
+  * Jelaskan bagaimana middleware memeriksa role user dan melempar abort(403).
+- Tunjukkan routes/web.php:
+  * Jelaskan 3 Route Group (mahasiswa, petugas, kepala-bagian) dengan middleware masing-masing.
+- Tunjukkan app/Policies/SuratPolicy.php:
+  * Jelaskan method view(): perbandingan $user->id === $surat->user_id.
+- Tunjukkan app/Http/Controllers/Mahasiswa/SuratController.php:
+  * Tunjukkan pemanggilan Gate::authorize('view', $surat).
+- Buka terminal dan jalankan: php artisan test
+  * Tunjukkan bahwa seluruh 35 skenario pengujian berhasil lulus (PASS).
+
+[19:30 - 23:30] SEGMENT 6: PENJELASAN 3 PERTANYAAN ANALISIS KASUS
+- Jawab Pertanyaan 1: Mengapa middleware peran saja tidak cukup mencegah IDOR antar mahasiswa?
+- Jawab Pertanyaan 2: Perbedaan fundamental antara Role-Based Access Control dan Data Ownership Authorization.
+- Jawab Pertanyaan 3: Risiko fatal jika validasi otorisasi hanya ditaruh di sisi frontend.
+
+[23:30 - 25:00] SEGMENT 7: KESIMPULAN & PENUTUP
+- Rangkum manfaat implementasi pertahanan berlapis di Laravel.
+- Ucapkan terima kasih dan salam penutup.
+
+
+--------------------------------------------------------------------------------
+4. INFORMASI KREDENSIAL DEMO UNTUK PENGUJI / DOSEN
+--------------------------------------------------------------------------------
+URL Aplikasi  : http://127.0.0.1:8000
+Password Semua Akun: password
+
+1. Akun Mahasiswa 1:
+   Email : mahasiswa1@teknologi.ac.id
+   Peran : Mahasiswa
+   Data  : Pemilik Surat ID #1 (Status: Menunggu) & ID #2 (Status: Disetujui)
+
+2. Akun Mahasiswa 2:
+   Email : mahasiswa2@teknologi.ac.id
+   Peran : Mahasiswa
+   Data  : Pemilik Surat ID #3 (Status: Diproses) & ID #4 (Status: Ditolak)
+
+3. Akun Petugas Tata Usaha:
+   Email : petugas@teknologi.ac.id
+   Peran : Petugas Administrasi
+   Hak   : Verifikasi berkas, ubah status ke 'diproses', buat draf nomor surat
+
+4. Akun Kepala Bagian:
+   Email : kabag@teknologi.ac.id
+   Peran : Kepala Bagian
+   Hak   : Otorisasi final persetujuan (terbitkan nomor resmi) atau penolakan
+================================================================================
